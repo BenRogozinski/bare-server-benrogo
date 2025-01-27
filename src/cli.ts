@@ -59,6 +59,14 @@ program
 		'-s, --silent',
 		'When set, prints nothing but log data to the stdout',
 	)
+	.option(
+		'-el, --enable-logging',
+		'When set, enables custom logging format'
+	)
+	.option(
+		'-id --backend-id <string>',
+		'Backend ID for logging'
+	)
 	.action(
 		async ({
 			directory,
@@ -70,7 +78,9 @@ program
 			maintainer,
 			maintainerFile,
 			blockLocal,
-			silent
+			silent,
+			enableLogging,
+			backendId
 		}: {
 			directory: string;
 			errors: boolean;
@@ -82,8 +92,12 @@ program
 			maintainerFile?: string;
 			blockLocal?: boolean;
 			silent?: boolean;
+			enableLogging?: boolean;
+			backendId?: string;
 		}) => {
 			const config: BareServerInit = {
+				backendId: backendId,
+				enableLogging: enableLogging,
 				logErrors: errors,
 				localAddress,
 				family: family as IPFamily,

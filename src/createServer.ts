@@ -16,6 +16,8 @@ export const validIPFamily: number[] = [0, 4, 6];
 export type IPFamily = 0 | 4 | 6;
 
 export interface BareServerInit {
+	backendId?: string;
+	enableLogging?: boolean;
 	logErrors?: boolean;
 	localAddress?: string;
 	/**

@@ -15,6 +15,7 @@ import type WebSocket from 'ws';
 // @internal
 import type { JSONDatabaseAdapter } from './Meta.js';
 import { nullMethod } from './requestUtil.js';
+import { randomHex } from './requestUtil.js';
 
 export interface BareRequest extends Request {
 	native: IncomingMessage;
@@ -42,9 +43,8 @@ export const pkg = JSON.parse(
 ) as { version: string };
 
 const project: BareProject = {
-	name: 'bare-server-node',
-	description: 'TOMPHTTP NodeJS Bare Server',
-	repository: 'https://github.com/tomphttp/bare-server-node',
+	name: 'bare-server-node-benrogo',
+	description: 'Benrogo.net NodeJS Bare server',
 	version: pkg.version,
 };
 
@@ -58,6 +58,19 @@ export function json<T>(status: number, json: T) {
 			'content-length': send.byteLength.toString(),
 		},
 	});
+}
+
+export function escapeString(str: string | string[] | undefined) {
+	if (typeof(str) === "string") {
+		return str
+        	.replace(/\\/g, '\\\\')
+        	.replace(/"/g, '\\"')
+        	.replace(/\n/g, '\\n')
+        	.replace(/\r/g, '\\r')
+        	.replace(/\t/g, '\\t');
+	} else {
+		return "";
+	}
 }
 
 export type BareMaintainer = {
@@ -211,6 +224,8 @@ export default class Server extends EventEmitter {
 		}
 	}
 	async routeRequest(req: IncomingMessage, res: ServerResponse) {
+		const requestTimestamp = (Date.now() / 1000).toFixed(3);
+
 		const request = new Request(new URL(req.url!, 'http://bare-server-node'), {
 			method: req.method,
 			body: nullMethod.includes(req.method || '') ? undefined : req,
@@ -296,5 +311,31 @@ export default class Server extends EventEmitter {
 			body.pipe(res);
 			res.on('close', () => body.destroy());
 		} else res.end();
+
+		const logEntry = {
+			"time": requestTimestamp,
+			"remote_addr": req.headers["cf-connecting-ip"] || req.socket.remoteAddress,
+			"host": escapeString(req.headers["host"]),
+			"method": req.method,
+			"status": response.status,
+			"bare_version": escapeString(req.url),
+			"bare_url_v1v2": escapeString(
+				req.headers["x-bare-protocol"] +
+				"//" +
+				req.headers["x-bare-host"] +
+				":" +
+				req.headers["x-bare-port"] +
+				req.headers["x-bare-path"]
+			),
+			"bare_url_v3": escapeString(req.headers["x-bare-url"]),
+			"request_length": req.socket.bytesRead, // FIX LATER
+			"response_length": req.socket.bytesWritten, // FIX LATER
+			"proxy_site": escapeString(req.headers["referer"]),
+			"user_agent": escapeString(req.headers["user-agent"] ),
+			"upstream": "local",
+			"backend_id": "",
+			"id": randomHex(16)
+		};
+		console.log(JSON.stringify(logEntry));
 	}
 }

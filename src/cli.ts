@@ -55,6 +55,10 @@ program
 		'-mf, --maintainer-file <string>',
 		'Path to a file containing the maintainer data',
 	)
+	.option(
+		'-s, --silent',
+		'When set, prints nothing but log data to the stdout',
+	)
 	.action(
 		async ({
 			directory,
@@ -66,6 +70,7 @@ program
 			maintainer,
 			maintainerFile,
 			blockLocal,
+			silent
 		}: {
 			directory: string;
 			errors: boolean;
@@ -76,6 +81,7 @@ program
 			maintainer?: string;
 			maintainerFile?: string;
 			blockLocal?: boolean;
+			silent?: boolean;
 		}) => {
 			const config: BareServerInit = {
 				logErrors: errors,
@@ -90,14 +96,16 @@ program
 			};
 			const bareServer = createBareServer(directory, config);
 
-			console.log('Error Logging:', errors);
-			console.log(
-				'URL:          ',
-				`http://${host === '0.0.0.0' ? 'localhost' : host}${
-					port === 80 ? '' : `:${port}`
-				}${directory}`,
-			);
-			console.log('Maintainer:   ', config.maintainer);
+			if (!silent) {
+				console.log('Error Logging:', errors);
+				console.log(
+					'URL:          ',
+					`http://${host === '0.0.0.0' ? 'localhost' : host}${
+						port === 80 ? '' : `:${port}`
+					}${directory}`,
+				);
+				console.log('Maintainer:   ', config.maintainer);
+			}
 
 			const server = createServer();
 

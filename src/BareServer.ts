@@ -17,6 +17,7 @@ import type { JSONDatabaseAdapter } from './Meta.js';
 import { nullMethod } from './requestUtil.js';
 import { randomHex } from './requestUtil.js';
 
+
 export interface BareRequest extends Request {
 	native: IncomingMessage;
 }
@@ -120,6 +121,7 @@ export type BareManifest = {
 	versions: string[];
 	language: BareLanguage;
 	memoryUsage?: number;
+	backendID?: string;
 };
 
 export interface Options {
@@ -168,6 +170,43 @@ export type SocketRouteCallback = (
 	options: Options,
 ) => Promise<void> | void;
 
+async function logRequest(
+    req: IncomingMessage,
+    res: ServerResponse,
+    timestamp: string,
+	backendId: string
+) {
+    const logEntry = {
+        time: timestamp,
+        remote_addr: req.headers['cf-connecting-ip'] || req.socket.remoteAddress,
+        host: escapeString(req.headers['host']),
+        method: req.method,
+        status: res.statusCode,
+        bare_version: escapeString(req.url),
+        bare_url_v1v2: escapeString(
+            (req.headers['x-bare-protocol'] || '') +
+            '//' +
+            (req.headers['x-bare-host'] || '') +
+            ':' +
+            (req.headers['x-bare-port'] || '') +
+            (req.headers['x-bare-path'] || '')
+        ),
+        bare_url_v3: escapeString(req.headers['x-bare-url']),
+        request_length: 0,
+        response_length: 0,
+        proxy_site: escapeString(req.headers['referer']),
+        user_agent: escapeString(req.headers['user-agent']),
+        upstream: 'local',
+        backend_id: backendId || '',
+        id: randomHex(16),
+    };
+
+    const requestLogFile = getLogFile();
+    appendFile(requestLogFile, JSON.stringify(logEntry) + '\n', (err) => {
+        if (err) console.error('Failed to write to log file:', err);
+    });
+}
+
 export default class Server extends EventEmitter {
 	directory: string;
 	routes = new Map<string, RouteCallback>();
@@ -204,6 +243,7 @@ export default class Server extends EventEmitter {
 			memoryUsage:
 				Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100,
 			maintainer: this.options.maintainer,
+			backendID: this.options.backendId,
 			project,
 		};
 	}
@@ -320,11 +360,19 @@ export default class Server extends EventEmitter {
 			Object.fromEntries(response.headers),
 		);
 
+		res.on('finish', () => {
+			if (this.options.enableLogging) {
+				logRequest(req, res, requestTimestamp, this.options.backendId);
+			}
+		});
+
 		if (response.body) {
 			const body = Readable.fromWeb(response.body as ReadableStream);
 			body.pipe(res);
 			res.on('close', () => body.destroy());
 		} else res.end();
+<<<<<<< HEAD
+=======
 
 		// Custom log format code
 		if (this.options.enableLogging) {
@@ -356,5 +404,6 @@ export default class Server extends EventEmitter {
 			console.log(res.socket?.bytesWritten)
 			//appendFile(`./${requestLogFile}`, JSON.stringify(logEntry) + "\n", err => {})
 		}
+>>>>>>> c3e14a8 (Did sum workkk)
 	}
 }

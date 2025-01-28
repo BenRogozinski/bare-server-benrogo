@@ -371,39 +371,5 @@ export default class Server extends EventEmitter {
 			body.pipe(res);
 			res.on('close', () => body.destroy());
 		} else res.end();
-<<<<<<< HEAD
-=======
-
-		// Custom log format code
-		if (this.options.enableLogging) {
-			const logEntry = {
-				"time": requestTimestamp,
-				"remote_addr": req.headers["cf-connecting-ip"] || req.socket.remoteAddress,
-				"host": escapeString(req.headers["host"]),
-				"method": req.method,
-				"status": response.status,
-				"bare_version": escapeString(req.url),
-				"bare_url_v1v2": escapeString(
-					(req.headers["x-bare-protocol"] || "") +
-					"//" +
-					(req.headers["x-bare-host"] || "") +
-					":" +
-					(req.headers["x-bare-port"] || "") +
-					(req.headers["x-bare-path"] || "")
-				),
-				"bare_url_v3": escapeString(req.headers["x-bare-url"]),
-				"request_length": 0, // FIX LATER
-				"response_length": 0, // FIX LATER
-				"proxy_site": escapeString(req.headers["referer"]),
-				"user_agent": escapeString(req.headers["user-agent"] ),
-				"upstream": "local",
-				"backend_id": this.options.backendId || "",
-				"id": randomHex(16)
-			};
-			console.log(JSON.stringify(logEntry))
-			console.log(res.socket?.bytesWritten)
-			//appendFile(`./${requestLogFile}`, JSON.stringify(logEntry) + "\n", err => {})
-		}
->>>>>>> c3e14a8 (Did sum workkk)
 	}
 }

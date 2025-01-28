@@ -119,6 +119,7 @@ program
 					}${directory}`,
 				);
 				console.log('Maintainer:   ', config.maintainer);
+				console.log('Backend ID:   ', config.backendId);
 			}
 
 			const server = createServer();

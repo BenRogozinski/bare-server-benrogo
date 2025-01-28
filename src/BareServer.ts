@@ -82,7 +82,7 @@ export const getLogFile = () => {
 	const day = String(now.getDate()).padStart(2, '0');
 	const hours = String(now.getHours()).padStart(2, '0');
   
-	return `${year}-${month}-${day}-${hours}-0-0.log`;
+	return `logs/${year}-${month}-${day}-${hours}-0-0.log`;
   };
 
 export type BareMaintainer = {
